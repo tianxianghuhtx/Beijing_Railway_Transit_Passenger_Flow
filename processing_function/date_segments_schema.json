@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/date-segments.schema.json",
+  "title": "Date Segments",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "name": { "type": "string" },
+      "date": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "begin": { "$ref": "#/$defs/ymd" },
+          "end":   { "$ref": "#/$defs/ymd" }
+        },
+        "required": ["begin", "end"]
+      },
+      "resolution": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "width":  { "type": "integer", "exclusiveMinimum": 0 },
+          "height": { "type": "integer", "exclusiveMinimum": 0 }
+        },
+        "required": ["width", "height"]
+      },
+      "function":     { "type": "string" },
+      "description":  { "type": "string" },
+      "enabled":      { "type": "boolean" }
+    },
+    "required": ["name", "date", "resolution", "function", "description", "enabled"]
+  },
+  "$defs": {
+    "ymd": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "year":  { "type": "integer" },
+        "month": { "type": "integer", "minimum": 1, "maximum": 12 },
+        "day":   { "type": "integer", "minimum": 1, "maximum": 31 }
+      },
+      "required": ["year", "month", "day"],
+      "allOf": [
+        {
+          "if": { "properties": { "month": { "const": 2 } } },
+          "then": {
+            "anyOf": [
+              {
+                "allOf": [
+                  { "properties": { "year": { "type": "integer", "multipleOf": 4 } } },
+                  {
+                    "anyOf": [
+                      { "not": { "properties": { "year": { "multipleOf": 100 } } } },
+                      { "properties": { "year": { "multipleOf": 400 } } }
+                    ]
+                  },
+                  { "properties": { "day": { "maximum": 29 } } }
+                ]
+              },
+              {
+                "allOf": [
+                  {
+                    "anyOf": [
+                      { "not": { "properties": { "year": { "multipleOf": 4 } } } },
+                      {
+                        "allOf": [
+                          { "properties": { "year": { "multipleOf": 100 } } },
+                          { "not": { "properties": { "year": { "multipleOf": 400 } } } }
+                        ]
+                      }
+                    ]
+                  },
+                  { "properties": { "day": { "maximum": 28 } } }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "if": { "properties": { "month": { "enum": [4, 6, 9, 11] } } },
+          "then": { "properties": { "day": { "maximum": 30 } } }
+        },
+        {
+          "if": { "properties": { "month": { "enum": [1, 3, 5, 7, 8, 10, 12] } } },
+          "then": { "properties": { "day": { "maximum": 31 } } }
+        }
+      ]
+    }
+  }
+}
